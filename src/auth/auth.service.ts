@@ -5,13 +5,14 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { PrismaService } from './../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { AuthEntity } from './entity/auth.entity';
 import * as bcrypt from 'bcrypt';
+
+import { PrismaService } from './../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { CheckAuthDto } from './dto/checkAuth.dto';
+import { AuthDto } from './dto/auth.dto';
+import { AuthStatusDto } from './dto/auth-status.dto';
 
 @Injectable()
 export class AuthService {
@@ -20,11 +21,13 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(LoginDto: LoginDto): Promise<AuthEntity> {
+  async login(DTO: LoginDto): Promise<AuthDto> {
     try {
-      const { email, password } = LoginDto;
+      const { email, password } = DTO;
+
       const user = await this.prisma.user.findUnique({
         where: { email: email },
+        select: { password: true, id: true },
       });
 
       if (!user) {
@@ -44,11 +47,11 @@ export class AuthService {
     }
   }
 
-  async register(registerDto: RegisterDto): Promise<AuthEntity> {
+  async register(DTO: RegisterDto): Promise<AuthDto> {
     try {
-      const { email, password } = registerDto;
+      const { email, password } = DTO;
       const existingUser = await this.prisma.user.findUnique({
-        where: { email },
+        where: { email: email },
       });
       if (existingUser) {
         throw new BadRequestException('This email is taken by another user');
@@ -70,11 +73,9 @@ export class AuthService {
     }
   }
 
-  async checkAuth(
-    CheckAuthDto: CheckAuthDto,
-  ): Promise<{ isAuthorized: boolean }> {
+  async checkAuth(DTO: AuthDto): Promise<AuthStatusDto> {
     try {
-      const { accessToken } = CheckAuthDto;
+      const { accessToken } = DTO;
 
       const payload = this.jwtService.verify(accessToken, {
         secret: process.env.JWT_SECRET,
@@ -82,15 +83,18 @@ export class AuthService {
 
       const user = await this.prisma.user.findUnique({
         where: { id: payload.userId },
+        select: { isProfileCompleted: true },
       });
 
       if (!user) {
-        return { isAuthorized: false };
-      } else {
-        return { isAuthorized: true };
+        return { isAuthorized: false, isProfileCompleted: false };
       }
+      return {
+        isAuthorized: true,
+        isProfileCompleted: user.isProfileCompleted,
+      };
     } catch (error) {
-      throw new InternalServerErrorException();
+      return { isAuthorized: false, isProfileCompleted: false };
     }
   }
 }

@@ -13,8 +13,6 @@ async function bootstrap() {
     credentials: true,
   });
 
-  console.log(process.env.JWT_SECRET);
-
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 

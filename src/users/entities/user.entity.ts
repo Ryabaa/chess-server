@@ -11,11 +11,14 @@ export class UserEntity implements User {
   id: number;
 
   @ApiProperty()
-  createdAt: Date;
-
-  @ApiProperty()
   email: string;
 
   @Exclude()
   password: string;
+
+  @ApiProperty()
+  createdAt: Date;
+
+  @ApiProperty()
+  isProfileCompleted: boolean;
 }

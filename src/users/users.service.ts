@@ -9,20 +9,17 @@ export const roundsOfHashing = 10;
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  findOne(id: number) {
+  async findOne(id: number) {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
-  async create(createUserDto: CreateUserDto) {
-    const hashedPassword = await bcrypt.hash(
-      createUserDto.password,
-      roundsOfHashing,
-    );
+  async create(DTO: CreateUserDto) {
+    const hashedPassword = await bcrypt.hash(DTO.password, roundsOfHashing);
 
-    createUserDto.password = hashedPassword;
+    DTO.password = hashedPassword;
 
     return this.prisma.user.create({
-      data: createUserDto,
+      data: DTO,
     });
   }
 }

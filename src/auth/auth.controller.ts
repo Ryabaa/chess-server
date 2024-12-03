@@ -1,10 +1,10 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
-import { AuthEntity } from './entity/auth.entity';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { CheckAuthDto } from './dto/checkAuth.dto';
+import { AuthDto } from './dto/auth.dto';
+import { AuthStatusDto } from './dto/auth-status.dto';
 
 import { AuthService } from './auth.service';
 
@@ -14,20 +14,20 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  @ApiOkResponse({ type: AuthEntity })
-  login(@Body() LoginDto: LoginDto) {
-    return this.authService.login(LoginDto);
+  @ApiOkResponse({ type: AuthDto })
+  async login(@Body() DTO: LoginDto): Promise<AuthDto> {
+    return this.authService.login(DTO);
   }
 
   @Post('register')
-  @ApiOkResponse({ type: AuthEntity })
-  register(@Body() RegisterDto: RegisterDto) {
-    return this.authService.register(RegisterDto);
+  @ApiOkResponse({ type: AuthDto })
+  async register(@Body() DTO: RegisterDto): Promise<AuthDto> {
+    return this.authService.register(DTO);
   }
 
   @Post('check-auth')
-  @ApiOkResponse({ type: AuthEntity })
-  checkAuth(@Body() CheckAuthDto: CheckAuthDto) {
-    return this.authService.checkAuth(CheckAuthDto);
+  @ApiOkResponse({ type: AuthStatusDto })
+  async checkAuth(@Body() DTO: AuthDto): Promise<AuthStatusDto> {
+    return this.authService.checkAuth(DTO);
   }
 }
